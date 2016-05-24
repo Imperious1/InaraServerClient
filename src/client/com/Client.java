@@ -17,18 +17,31 @@ public class Client {
 
     public static void main(String[] args) throws IOException {
         socket = new Socket("127.0.0.1", 4044);
+        new UserInputThread().start();
         BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         String s;
         DataModel dataModel;
-        sendRequest(toJson(new RequestModel().setRequestId(1).setSearchedName("Zwamp")));
         while((s = br.readLine()) != null) {
             dataModel = fromJson(s);
-            System.out.println(dataModel.getCmdrName());
+            if(!dataModel.isError()) {
+                System.out.println(dataModel.getId());
+                System.out.println(dataModel.getCmdrName());
+                System.out.println(dataModel.getRole());
+                System.out.println(dataModel.getAllegiance());
+                System.out.println(dataModel.getRank());
+                System.out.println(dataModel.getShip());
+                System.out.println(dataModel.getPower());
+                System.out.println(dataModel.getBalance());
+                System.out.println(dataModel.getRegShipName());
+                System.out.println(dataModel.getWing());
+                System.out.println(dataModel.getAssets());
+            } else
+                System.out.println("Invalid request.");
         }
 
     }
 
-    private static void sendRequest(String stuff) {
+    static void sendRequest(String stuff) {
         new Thread(() -> {
             try {
                 new PrintWriter(socket.getOutputStream(), true).println(stuff);
@@ -42,7 +55,7 @@ public class Client {
         return new Gson().fromJson(s, DataModel.class);
     }
 
-    private static String toJson(RequestModel model) {
+    static String toJson(RequestModel model) {
         return new Gson().toJson(model);
     }
 }

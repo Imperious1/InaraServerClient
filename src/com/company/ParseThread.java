@@ -2,12 +2,10 @@ package com.company;
 
 import com.google.gson.Gson;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import javax.net.ssl.HttpsURLConnection;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -18,6 +16,8 @@ class ParseThread extends Thread {
 
     private static final String TABLE_DATA = "td";
     private int index = 1;
+    private HttpsURLConnection mConnection = null;
+    private HttpURLConnection mHttpConnection = null;
 
     @Override
     public void run() {
@@ -26,11 +26,11 @@ class ParseThread extends Thread {
         try {
             while (true) {
                 s = parseData("http://inara.cz/cmdr/" + index);
-                System.out.println(s);
-                if (s.toLowerCase().contains("CMDR EXAMPLE")) {
+                if (s.toLowerCase().contains("cmdr example") && index > 26474) {
                     System.out.println("End of commanders reached, breaking...");
                     break;
                 }
+                System.out.println(index);
                 index++;
             }
         } catch (IOException e) {
@@ -43,16 +43,11 @@ class ParseThread extends Thread {
     }
 
     private String downloadPage(String url) throws IOException {
-        HttpsURLConnection mConnection = null;
-        HttpURLConnection mHttpConnection = null;
         if (url.contains("https")) mConnection = (HttpsURLConnection) new URL(url).openConnection();
         else mHttpConnection = (HttpURLConnection) new URL(url).openConnection();
-        BufferedReader br = null;
-        if (mConnection != null || mHttpConnection != null)
-            br = new BufferedReader(new InputStreamReader((mConnection == null) ? mHttpConnection.getInputStream() : mConnection.getInputStream()));
+        BufferedReader br = new BufferedReader(new InputStreamReader((mConnection == null) ? mHttpConnection.getInputStream() : mConnection.getInputStream()));
         StringBuilder sb = new StringBuilder();
         String s;
-        assert br != null;
         while ((s = br.readLine()) != null) {
             sb.append(s);
         }
@@ -60,12 +55,10 @@ class ParseThread extends Thread {
     }
 
     private String parseData(String url) throws IOException {
-        DataModel model = getModel(Jsoup.parse(downloadPage(url)).getElementsByTag("TABLE").first());
-        Singleton.addToList(model);
-        return toJson(model);
+        return toJson(Singleton.addToList(getModel(Jsoup.parse(downloadPage(url)).getElementsByTag("td"))));
     }
 
-    private DataModel getModel(Element element) {
+    private DataModel getModel(Elements element) {
         return new DataModel()
                 .setId(String.valueOf(index))
                 .setCmdrName(element.select(TABLE_DATA).get(1).text())

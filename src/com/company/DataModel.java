@@ -16,6 +16,7 @@ class DataModel {
     private String role;
     private String allegiance;
     private String power;
+    private boolean isError;
 
     public String getImageUrl() {
         return imageUrl;
@@ -122,6 +123,15 @@ class DataModel {
 
     DataModel setPower(String power) {
         this.power = power;
+        return this;
+    }
+
+    boolean isError() {
+        return isError;
+    }
+
+    DataModel setError(boolean error) {
+        isError = error;
         return this;
     }
 }

@@ -3,7 +3,7 @@ package client.com;
 /**
  * Created by blaze on 5/23/2016.
  */
-public class RequestModel {
+class RequestModel {
 
     private int requestId;
     private String searchedName;

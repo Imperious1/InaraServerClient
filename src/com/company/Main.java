@@ -12,7 +12,7 @@ public class Main {
         try(ServerSocket socket = new ServerSocket(4044)) {
             while(listening) {
                 new AwaitCommand(socket.accept()).start();
-                System.out.println("gotcha!");
+                System.out.println("Connection started...");
             }
         } catch (IOException e) {
             e.printStackTrace();

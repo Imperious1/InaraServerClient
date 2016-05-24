@@ -9,8 +9,9 @@ class Singleton {
 
     private static ArrayList<DataModel> parsedList = new ArrayList<>();
 
-    static void addToList(DataModel model) {
+    static DataModel addToList(DataModel model) {
         parsedList.add(model);
+        return model;
     }
 
     static ArrayList<DataModel> getParsedList() {
