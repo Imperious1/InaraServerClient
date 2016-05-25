@@ -41,8 +41,10 @@ class Utils {
         return new Gson().fromJson(json, RequestModel.class);
     }
 
-    private static Connection getDbConnection() throws SQLException {
-        return DriverManager.getConnection("jdbc:mysql://localhost:3306/inara_users", "root", "");
+    private static Connection getDbConnection(int t) throws SQLException {
+        if (t == 1)
+            return DriverManager.getConnection("jdbc:mysql://localhost:3306/inara_users", "root", "");
+        else return DriverManager.getConnection("jdbc:mysql://localhost:3306/search_history", "root", "");
     }
 
     private static String downloadPage(String url) throws IOException {
@@ -65,10 +67,23 @@ class Utils {
         return sb.toString();
     }
 
+    static void updateEntries(ArrayList<DataModel> models, Socket socket) throws SQLException, IOException {
+        int i = 1;
+        for (DataModel m : models) {
+            System.out.println(m.getCmdrName());
+            DataModel newModel = getModel(Jsoup.parse(downloadPage("http://inara.cz/cmdr/" + m.getId())).getElementsByTag("td"));
+            getDbConnection(1).createStatement().execute(DataModel.createUpdateString(newModel.setId(m.getId())));
+            sendData(toJson(newModel.setId(m.getId())), socket);
+            i++;
+        }
+    }
+
     static void updateEntry(DataModel model, Socket socket) throws SQLException, IOException {
+        System.out.println(model.getCmdrName());
         DataModel newModel = getModel(Jsoup.parse(downloadPage("http://inara.cz/cmdr/" + model.getId())).getElementsByTag("td"));
-        getDbConnection().createStatement().execute(DataModel.createUpdateString(newModel.setId(model.getId())));
+        getDbConnection(1).createStatement().execute(DataModel.createUpdateString(newModel.setId(model.getId())));
         sendData(toJson(newModel.setId(model.getId())), socket);
+
     }
 
     static void updateAll() throws SQLException {
@@ -80,7 +95,7 @@ class Utils {
                         System.out.println("End of commanders reached, breaking...");
                         break;
                     }
-                    getDbConnection().createStatement().execute(DataModel.createUpdateAllString(newModel));
+                    getDbConnection(1).createStatement().execute(DataModel.createUpdateAllString(newModel));
                     System.out.println(index);
                     index++;
                 }
@@ -104,7 +119,7 @@ class Utils {
                 + "," + model.getRegShipName() + "," + model.getWing() + "," + model.getAssets() + "," + model.getBalance()
                 + "," + model.getRole() + "," + model.getAllegiance() + "," + model.getPower() + ");";
         try {
-            getDbConnection().createStatement().execute(s);
+            getDbConnection(1).createStatement().execute(s);
         } catch (SQLException e) {
             if (e.getErrorCode() == 1062)
                 System.out.println("Error: DB already contains this user");
@@ -114,7 +129,7 @@ class Utils {
     }
 
     static ArrayList<DataModel> formModelGroup(String groupQuery) throws SQLException {
-        Statement statement = getDbConnection().createStatement();
+        Statement statement = getDbConnection(1).createStatement();
         statement.execute("SELECT * FROM cmdrs WHERE wing=" + "'" + groupQuery + "'");
         ResultSet rs = statement.getResultSet();
         ArrayList<DataModel> groupPlayerList = new ArrayList<>();
@@ -126,12 +141,26 @@ class Utils {
     }
 
     static DataModel formModelStandard(String query) throws SQLException {
-        Statement statement = getDbConnection().createStatement();
-        statement.execute(String.format("SELECT * FROM cmdrs WHERE cmdrname='%s';", query.contains("cmdr ") ? query : "cmdr " + query));
+        Statement statement = getDbConnection(1).createStatement();
+        statement.execute(String.format("SELECT * FROM cmdrs WHERE cmdrname= '%s' LIMIT 1;", query.contains("cmdr ") ? query : "cmdr " + query));
         ResultSet rs = statement.getResultSet();
         if (rs.next()) {
-            return getModelFromResultSet(rs);
-        } else return null;
+            if (!rs.getString("cmdrname").isEmpty())
+                return getModelFromResultSet(rs);
+        }
+        return null;
+    }
+
+    static ArrayList<DataModel> formModelListStandard(String query) throws SQLException {
+        Statement statement = getDbConnection(1).createStatement();
+        statement.execute(String.format("SELECT * FROM cmdrs WHERE cmdrname LIKE '%%%s%%' LIMIT 50;", query));
+        ResultSet rs = statement.getResultSet();
+        ArrayList<DataModel> cmdrsList = new ArrayList<>();
+        while (rs.next()) {
+            if (!rs.getString("cmdrname").isEmpty())
+                cmdrsList.add(getModelFromResultSet(rs));
+        }
+        return cmdrsList;
     }
 
     private static DataModel getModelFromResultSet(ResultSet rs) throws SQLException {

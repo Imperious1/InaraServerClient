@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import static com.company.Utils.*;
 
@@ -41,13 +42,17 @@ class AwaitCommand extends Thread {
     private void handleRequest(int id, String searchedName) throws SQLException, IOException {
         switch (id) {
             case 1:
-                findAndSendPlayer(searchedName);
+                if (searchedName.length() >= 2)
+                    findAndSendPlayers(searchedName);
+                else findAndSendPlayer(searchedName);
                 break;
             case 2:
                 findAndSendGroupsPlayers(searchedName.replace("Group: ", "").replace("'", ""));
                 break;
             case 3:
-                updateEntry(formModelStandard(searchedName.replace("Update: ", "")), socket);
+                if (searchedName.length() >= 2)
+                    updateEntries(formModelListStandard(searchedName.replace("Update: ", "")), socket);
+                else updateEntry(formModelStandard(searchedName.replace("Update: ", "")), socket);
                 break;
             default:
                 sendData(toJson(new DataModel().setError(true)), socket);
@@ -55,15 +60,27 @@ class AwaitCommand extends Thread {
         }
     }
 
-    private void findAndSendPlayer(String searchedName) {
+    private void findAndSendPlayers(String searchedName) {
         try {
-            DataModel m = formModelStandard(searchedName.toLowerCase());
-            assert m != null;
-            if (m.getCmdrName().toLowerCase().contains(searchedName.toLowerCase())) {
-                Utils.sendData(toJson(m), socket);
+            ArrayList<DataModel> m = formModelListStandard(searchedName.toLowerCase());
+            if (m != null) {
+                for (DataModel e : m) {
+                    if (e.getCmdrName().toLowerCase().contains(searchedName.toLowerCase())) {
+                        Utils.sendData(toJson(e), socket);
+                    }
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void findAndSendPlayer(String searchedName) throws SQLException {
+        DataModel m = formModelStandard(searchedName.toLowerCase());
+        if (m != null) {
+            if (m.getCmdrName().toLowerCase().contains(searchedName.toLowerCase())) {
+                Utils.sendData(toJson(m), socket);
+            }
         }
     }
 
