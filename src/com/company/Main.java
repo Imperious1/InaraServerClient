@@ -6,8 +6,7 @@ import java.net.ServerSocket;
 public class Main {
 
     public static void main(String[] args) {
-        new UpdateMonitor().start();
-        new ParseThread().start();
+        new ServerControl().start();
         boolean listening = true;
         try(ServerSocket socket = new ServerSocket(4044)) {
             while(listening) {

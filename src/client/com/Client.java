@@ -21,9 +21,9 @@ public class Client {
         BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         String s;
         DataModel dataModel;
-        while((s = br.readLine()) != null) {
+        while ((s = br.readLine()) != null) {
             dataModel = fromJson(s);
-            if(!dataModel.isError()) {
+            if (!dataModel.isError()) {
                 System.out.println(dataModel.getId());
                 System.out.println(dataModel.getCmdrName());
                 System.out.println(dataModel.getRole());

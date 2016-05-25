@@ -18,13 +18,27 @@ class DataModel {
     private String power;
     private boolean isError;
 
-    public String getImageUrl() {
+    String getImageUrl() {
         return imageUrl;
     }
 
     DataModel setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
         return this;
+    }
+
+    static String createUpdateString(DataModel newModel) {
+        return String.format("UPDATE cmdrs SET allegiance=%s, assets=%s, balance=%s, cmdrname=%s, imageurl=%s, power=%s, rank=%s, regshipname=%s, role=%s, ship=%s, wing=%s WHERE id=%s;",
+                newModel.getAllegiance(), newModel.getAssets(), newModel.getBalance(), newModel.getCmdrName(),
+                newModel.getImageUrl(), newModel.getPower(), newModel.getRank() , newModel.getRegShipName()
+                , newModel.getRole() , newModel.getShip(),newModel.getWing(), newModel.getId());
+    }
+
+    static String createUpdateAllString(DataModel newModel) {
+        return String.format("UPDATE cmdrs SET allegiance=%s, assets=%s, balance=%s, cmdrname=%s, imageurl=%s, power=%s, rank=%s, regshipname=%s, role=%s, ship=%s, wing=%s WHERE id=%s;",
+                newModel.getAllegiance(), newModel.getAssets(), newModel.getBalance(), newModel.getCmdrName(),
+                newModel.getImageUrl(), newModel.getPower(), newModel.getRank() , newModel.getRegShipName(),
+                newModel.getRole(), newModel.getShip(),newModel.getWing(), newModel.getId());
     }
 
     String getId() {
@@ -134,4 +148,21 @@ class DataModel {
         isError = error;
         return this;
     }
+
+    String[] getAll() {
+        String[] stuff = new String[11];
+        stuff[0] = imageUrl;
+        stuff[1] = cmdrName;
+        stuff[2] = rank;
+        stuff[3] = ship;
+        stuff[4] = regShipName;
+        stuff[5] = wing;
+        stuff[6] = assets;
+        stuff[7] = balance;
+        stuff[8] = role;
+        stuff[9] = allegiance;
+        stuff[10] = power;
+        return stuff;
+    }
+
 }

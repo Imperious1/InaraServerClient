@@ -10,5 +10,6 @@
     <orderEntry type="library" name="gson-2.3.1" level="project" />
     <orderEntry type="library" name="json-20140107" level="project" />
     <orderEntry type="library" name="jsoup-1.9.2" level="project" />
+    <orderEntry type="library" name="mysql-connector-java-5.1.39-bin" level="project" />
   </component>
 </module>
