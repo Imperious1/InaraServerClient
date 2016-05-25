@@ -25,33 +25,18 @@ class ParseThread extends Thread {
             if (specifiedIndex != 0)
                 index = specifiedIndex;
             while (allowed) {
-                if (!isEndless) {
-                    normalParse();
-                } else {
-
-                }
-                index = 1;
-            }
-        } catch (SQLException | IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void normalParse() throws IOException, SQLException {
-        while (allowed) {
-            s = parseData("http://inara.cz/cmdr/" + index, false);
-            if (s != null) {
-                if (s.toLowerCase().contains("cmdr example") && index >= 26584) {
-                    if (!isEndless)
-                        break;
-                } else {
-                    if (!isEndless) {
-                        System.out.println("At end, breaking...");
+                s = parseData("http://inara.cz/cmdr/" + index);
+                if(s != null) {
+                    if (s.toLowerCase().contains("cmdr example") && index > 26474) {
+                        System.out.println("End of commanders reached, breaking...");
                         break;
                     }
                 }
                 index++;
             }
+            index = 1;
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
         }
     }
 

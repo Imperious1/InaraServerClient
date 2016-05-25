@@ -111,31 +111,11 @@ class Utils {
         Utils.allowed = allowed;
     }
 
-    static String parseData(String url, boolean isNewUser) throws IOException, SQLException {
+    static String parseData(String url) throws IOException, SQLException {
         DataModel model = getModel(Jsoup.parse(downloadPage(url)).getElementsByTag("td"));
-        if (!isNewUser) {
-            if (model.getCmdrName().toLowerCase().contains("cmdr example"))
-                return null;
-            else return toJson(insertIntoDb(model));
-        } else {
-            if (model.getCmdrName().toLowerCase().contains("cmdr example"))
-                return null;
-            if (checkIfExists(model.getCmdrName())) {
-                return toJson(insertIntoDb(model));
-            }
-        }
-        return null;
-    }
-
-    private static boolean checkIfExists(String name) throws SQLException {
-        Statement statement = getDbConnection(1).createStatement();
-        statement.execute(String.format("SELECT * FROM cmdrs WHERE cmdrname=%s", name));
-        ResultSet rs = statement.getResultSet();
-        if (rs.next()) {
-            if (!rs.getString("cmdrname").isEmpty())
-                return true;
-        }
-        return false;
+        if (model.getCmdrName().toLowerCase().contains("cmdr example"))
+            return null;
+        else return toJson(insertIntoDb(model));
     }
 
     private static DataModel insertIntoDb(DataModel model) {
