@@ -22,6 +22,7 @@ import static com.company.ParseThread.getModel;
 class Utils {
 
     private static int index = 1;
+    private static boolean allowed = true;
 
     static void sendData(String data, Socket socket) {
         new Thread(() -> {
@@ -89,7 +90,7 @@ class Utils {
     static void updateAll() throws SQLException {
         new Thread(() -> {
             try {
-                while (true) {
+                while (allowed) {
                     DataModel newModel = getModel(Jsoup.parse(downloadPage("http://inara.cz/cmdr/" + index)).getElementsByTag("td")).setId(String.valueOf(index));
                     if (newModel.getCmdrName().toLowerCase().contains("cmdr example") && index > 26474) {
                         System.out.println("End of commanders reached, breaking...");
@@ -106,11 +107,35 @@ class Utils {
         }).start();
     }
 
-    static String parseData(String url) throws IOException, SQLException {
+    static void setAllowed(boolean allowed) {
+        Utils.allowed = allowed;
+    }
+
+    static String parseData(String url, boolean isNewUser) throws IOException, SQLException {
         DataModel model = getModel(Jsoup.parse(downloadPage(url)).getElementsByTag("td"));
-        if (model.getCmdrName().toLowerCase().contains("cmdr example"))
-            return null;
-        else return toJson(insertIntoDb(model));
+        if (!isNewUser) {
+            if (model.getCmdrName().toLowerCase().contains("cmdr example"))
+                return null;
+            else return toJson(insertIntoDb(model));
+        } else {
+            if (model.getCmdrName().toLowerCase().contains("cmdr example"))
+                return null;
+            if (checkIfExists(model.getCmdrName())) {
+                return toJson(insertIntoDb(model));
+            }
+        }
+        return null;
+    }
+
+    private static boolean checkIfExists(String name) throws SQLException {
+        Statement statement = getDbConnection(1).createStatement();
+        statement.execute(String.format("SELECT * FROM cmdrs WHERE cmdrname=%s", name));
+        ResultSet rs = statement.getResultSet();
+        if (rs.next()) {
+            if (!rs.getString("cmdrname").isEmpty())
+                return true;
+        }
+        return false;
     }
 
     private static DataModel insertIntoDb(DataModel model) {
@@ -142,7 +167,7 @@ class Utils {
 
     static DataModel formModelStandard(String query) throws SQLException {
         Statement statement = getDbConnection(1).createStatement();
-        statement.execute(String.format("SELECT * FROM cmdrs WHERE cmdrname= '%s' LIMIT 1;", query.contains("cmdr ") ? query : "cmdr " + query));
+        statement.execute(String.format("SELECT * FROM inara_users.cmdrs WHERE cmdrname= '%s' LIMIT 1;", query.contains("cmdr ") ? query : "cmdr " + query));
         ResultSet rs = statement.getResultSet();
         if (rs.next()) {
             if (!rs.getString("cmdrname").isEmpty())
@@ -153,7 +178,7 @@ class Utils {
 
     static ArrayList<DataModel> formModelListStandard(String query) throws SQLException {
         Statement statement = getDbConnection(1).createStatement();
-        statement.execute(String.format("SELECT * FROM cmdrs WHERE cmdrname LIKE '%%%s%%' LIMIT 50;", query));
+        statement.execute(String.format("SELECT * FROM inara_users.cmdrs WHERE cmdrname LIKE '%%%s%%' LIMIT 50;", query));
         ResultSet rs = statement.getResultSet();
         ArrayList<DataModel> cmdrsList = new ArrayList<>();
         while (rs.next()) {

@@ -14,23 +14,44 @@ class ParseThread extends Thread {
 
     private static final String TABLE_DATA = "td";
     private static int index = 1;
+    private static boolean allowed = true;
+    private int specifiedIndex = 0;
+    private boolean isEndless = false;
+    private String s;
 
     @Override
     public void run() {
-        String s;
         try {
-            while (true) {
-                s = parseData("http://inara.cz/cmdr/" + index);
-                assert s != null;
-                if (s.toLowerCase().contains("cmdr example") && index > 26474) {
-                    System.out.println("End of commanders reached, breaking...");
-                    break;
+            if (specifiedIndex != 0)
+                index = specifiedIndex;
+            while (allowed) {
+                if (!isEndless) {
+                    normalParse();
+                } else {
+
+                }
+                index = 1;
+            }
+        } catch (SQLException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void normalParse() throws IOException, SQLException {
+        while (allowed) {
+            s = parseData("http://inara.cz/cmdr/" + index, false);
+            if (s != null) {
+                if (s.toLowerCase().contains("cmdr example") && index >= 26584) {
+                    if (!isEndless)
+                        break;
+                } else {
+                    if (!isEndless) {
+                        System.out.println("At end, breaking...");
+                        break;
+                    }
                 }
                 index++;
             }
-            index = 1;
-        } catch (IOException | SQLException e) {
-            e.printStackTrace();
         }
     }
 
@@ -72,5 +93,18 @@ class ParseThread extends Thread {
                 break;
         }
         return ship;
+    }
+
+    static void setAllowed(boolean allowed) {
+        ParseThread.allowed = allowed;
+    }
+
+    void setSpecifiedIndex(int specifiedIndex) {
+        this.specifiedIndex = specifiedIndex;
+    }
+
+    ParseThread setEndless(boolean endless) {
+        isEndless = endless;
+        return this;
     }
 }

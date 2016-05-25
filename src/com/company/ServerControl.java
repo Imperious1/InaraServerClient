@@ -14,11 +14,20 @@ class ServerControl extends Thread {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         String s;
         try {
-            while((s = br.readLine()) != null) {
-                if(s.toLowerCase().equals("addall"))
+            while ((s = br.readLine()) != null) {
+                if (s.toLowerCase().equals("addall"))
                     new ParseThread().start();
-                else if(s.toLowerCase().equals("updateall"))
+                else if (s.toLowerCase().equals("updateall"))
                     Utils.updateAll();
+                else if (s.toLowerCase().equals("stopadd"))
+                    ParseThread.setAllowed(false);
+                else if (s.toLowerCase().equals("stopupdate"))
+                    Utils.setAllowed(false);
+                else if(s.toLowerCase().contains("addfrom")) {
+                    ParseThread parseThread = new ParseThread();
+                    parseThread.setSpecifiedIndex(Integer.parseInt(s.replace("addfrom ", "")));
+                    parseThread.start();
+                }
             }
         } catch (IOException | SQLException e) {
             e.printStackTrace();
