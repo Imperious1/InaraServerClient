@@ -19,7 +19,7 @@ import static com.company.ParseThread.getModel;
 /**
  * Created by blaze on 5/24/2016.
  */
-class Utils {
+final class Utils {
 
     private static int index = 1;
     private static boolean allowed = true;
@@ -42,10 +42,11 @@ class Utils {
         return new Gson().fromJson(json, RequestModel.class);
     }
 
-    private static Connection getDbConnection(int t) throws SQLException {
+    static Connection getDbConnection(int t) throws SQLException {
         if (t == 1)
-            return DriverManager.getConnection("jdbc:mysql://localhost:3306/inara_users", "root", "");
-        else return DriverManager.getConnection("jdbc:mysql://localhost:3306/search_history", "root", "");
+            return DriverManager.getConnection("jdbc:mysql://localhost:3306/inara_users", "root", "TempPassword107");
+        else
+            return DriverManager.getConnection("jdbc:mysql://localhost:3306/search_history", "root", "TempPassword107");
     }
 
     private static String downloadPage(String url) throws IOException {
@@ -69,29 +70,26 @@ class Utils {
     }
 
     static void updateEntries(ArrayList<DataModel> models, Socket socket) throws SQLException, IOException {
-        int i = 1;
         for (DataModel m : models) {
             System.out.println(m.getCmdrName());
-            DataModel newModel = getModel(Jsoup.parse(downloadPage("http://inara.cz/cmdr/" + m.getId())).getElementsByTag("td"));
+            DataModel newModel = getModel(Jsoup.parse(downloadPage("http://inara.cz/cmdr/" + m.getId())).getElementsByTag("td"), 0);
             getDbConnection(1).createStatement().execute(DataModel.createUpdateString(newModel.setId(m.getId())));
             sendData(toJson(newModel.setId(m.getId())), socket);
-            i++;
         }
     }
 
     static void updateEntry(DataModel model, Socket socket) throws SQLException, IOException {
-        System.out.println(model.getCmdrName());
-        DataModel newModel = getModel(Jsoup.parse(downloadPage("http://inara.cz/cmdr/" + model.getId())).getElementsByTag("td"));
+        System.out.println("User " + model.getCmdrName() + "updated.");
+        DataModel newModel = getModel(Jsoup.parse(downloadPage("http://inara.cz/cmdr/" + model.getId())).getElementsByTag("td"), 0);
         getDbConnection(1).createStatement().execute(DataModel.createUpdateString(newModel.setId(model.getId())));
         sendData(toJson(newModel.setId(model.getId())), socket);
-
     }
 
     static void updateAll() throws SQLException {
         new Thread(() -> {
             try {
                 while (allowed) {
-                    DataModel newModel = getModel(Jsoup.parse(downloadPage("http://inara.cz/cmdr/" + index)).getElementsByTag("td")).setId(String.valueOf(index));
+                    DataModel newModel = getModel(Jsoup.parse(downloadPage("http://inara.cz/cmdr/" + index)).getElementsByTag("td"), 0).setId(String.valueOf(index));
                     if (newModel.getCmdrName().toLowerCase().contains("cmdr example") && index > 26474) {
                         System.out.println("End of commanders reached, breaking...");
                         break;
@@ -111,11 +109,9 @@ class Utils {
         Utils.allowed = allowed;
     }
 
-    static String parseData(String url) throws IOException, SQLException {
-        DataModel model = getModel(Jsoup.parse(downloadPage(url)).getElementsByTag("td"));
-        if (model.getCmdrName().toLowerCase().contains("cmdr example"))
-            return null;
-        else return toJson(insertIntoDb(model));
+    static String parseData(String url, int index) throws IOException, SQLException {
+        DataModel model = getModel(Jsoup.parse(downloadPage(url)).getElementsByTag("td"), index);
+        return toJson(insertIntoDb(model));
     }
 
     private static DataModel insertIntoDb(DataModel model) {
@@ -127,8 +123,11 @@ class Utils {
             getDbConnection(1).createStatement().execute(s);
         } catch (SQLException e) {
             if (e.getErrorCode() == 1062)
-                System.out.println("Error: DB already contains this user");
-            else System.out.println("Error: " + e.getErrorCode());
+                System.out.println("Error: Database already contains this user");
+            else {
+                System.out.println("Error: " + e.getErrorCode());
+                System.out.println(e.getMessage());
+            }
         }
         return model;
     }

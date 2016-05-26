@@ -15,6 +15,7 @@ import static com.company.Utils.*;
 class AwaitCommand extends Thread {
 
     private Socket socket = null;
+    private static boolean shouldAwait = true;
 
     AwaitCommand(Socket socket) {
         this.socket = socket;
@@ -29,7 +30,7 @@ class AwaitCommand extends Thread {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             String s;
             RequestModel request;
-            while ((s = in.readLine()) != null) {
+            while ((s = in.readLine()) != null && shouldAwait) {
                 System.out.println(s);
                 request = fromJson(s);
                 handleRequest(request.getRequestId(), request.getSearchedName());
@@ -92,5 +93,9 @@ class AwaitCommand extends Thread {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    static void setShouldAwait(boolean shouldAwait) {
+        AwaitCommand.shouldAwait = shouldAwait;
     }
 }

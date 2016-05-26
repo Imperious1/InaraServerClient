@@ -14,10 +14,8 @@ class ParseThread extends Thread {
 
     private static final String TABLE_DATA = "td";
     private static int index = 1;
+    private static int specifiedIndex = 0;
     private static boolean allowed = true;
-    private int specifiedIndex = 0;
-    private boolean isEndless = false;
-    private String s;
 
     @Override
     public void run() {
@@ -25,36 +23,37 @@ class ParseThread extends Thread {
             if (specifiedIndex != 0)
                 index = specifiedIndex;
             while (allowed) {
-                s = parseData("http://inara.cz/cmdr/" + index);
-                if(s != null) {
-                    if (s.toLowerCase().contains("cmdr example") && index > 26474) {
+                String s = parseData("http://inara.cz/cmdr/" + index, 0);
+                if (s != null) {
+                    if (s.toLowerCase().contains("cmdr example") && index > 26644) {
                         System.out.println("End of commanders reached, breaking...");
                         break;
                     }
                 }
+                System.out.println("ParseThread index is " + index);
                 index++;
             }
+            specifiedIndex = 0;
             index = 1;
         } catch (SQLException | IOException e) {
             e.printStackTrace();
         }
     }
 
-    static DataModel getModel(Elements element) {
+    static DataModel getModel(Elements element, int index) {
         String wing = element.select(TABLE_DATA).get(9).text();
-        String regShipName = element.select(TABLE_DATA).get(8).text().replace("'", "").replace("Registered ship name ", "").replaceFirst("Registered ship name", "");
-        if (wing.contains("'")) wing = wing.replace("'", "");
+        if (wing.contains("'")) wing = wing.replace("'", "''");
         return new DataModel()
                 .setImageUrl("'" + element.select(TABLE_DATA).get(0).getElementsByTag("img").attr("src") + "'")
-                .setId(String.valueOf(index))
-                .setCmdrName("'" + element.select(TABLE_DATA).get(1).text() + "'")
+                .setId((index != 0) ? String.valueOf(index) : String.valueOf(ParseThread.index))
+                .setCmdrName("'" + element.select(TABLE_DATA).get(1).text().replace("'", "''").replace("\\", "\\\\") + "'")
                 .setRole("'" + element.select(TABLE_DATA).get(2).text().replace("Role ", "").replaceFirst("Role", "") + "'")
                 .setAllegiance("'" + element.select(TABLE_DATA).get(3).text().replace("Allegiance ", "") + "'")
                 .setRank("'" + element.select(TABLE_DATA).get(4).text().replace("Rank ", "") + "'")
                 .setShip("'" + validateShip(element.select(TABLE_DATA).get(5).text()) + "'")
                 .setPower("'" + element.select(TABLE_DATA).get(6).text().replace("Power ", "") + "'")
                 .setBalance("'" + element.select(TABLE_DATA).get(7).text().replace("Credit Balance ", "") + "'")
-                .setRegShipName("'" + regShipName + "'")
+                .setRegShipName("'" + element.select(TABLE_DATA).get(8).text().replace("'", "''").replace("Registered ship name ", "").replaceFirst("Registered ship name", "") + "'")
                 .setWing("'" + wing.replace("Wing ", "") + "'")
                 .setAssets("'" + element.select(TABLE_DATA).get(10).text().replace("Overall assets ", "") + "'");
     }
@@ -85,11 +84,6 @@ class ParseThread extends Thread {
     }
 
     void setSpecifiedIndex(int specifiedIndex) {
-        this.specifiedIndex = specifiedIndex;
-    }
-
-    ParseThread setEndless(boolean endless) {
-        isEndless = endless;
-        return this;
+        ParseThread.specifiedIndex = specifiedIndex;
     }
 }
