@@ -17,6 +17,7 @@ class ParseThread extends Thread {
     private static int specifiedIndex = 0;
     private static boolean allowed = true;
 
+    //
     @Override
     public void run() {
         try {
@@ -58,6 +59,7 @@ class ParseThread extends Thread {
                 .setAssets("'" + element.select(TABLE_DATA).get(10).text().replace("Overall assets ", "") + "'");
     }
 
+    //temp or perm fix for broken ship name bug
     private static String validateShip(String data) {
         String ship = data;
         switch (data) {
@@ -79,10 +81,12 @@ class ParseThread extends Thread {
         return ship;
     }
 
+    // whether or not the thread should be allowed to continue looping/running
     static void setAllowed(boolean allowed) {
         ParseThread.allowed = allowed;
     }
 
+    //set the index for where the thread should start at **FOR USER MONITOR/SERVER CONTROL I THINk**
     void setSpecifiedIndex(int specifiedIndex) {
         ParseThread.specifiedIndex = specifiedIndex;
     }

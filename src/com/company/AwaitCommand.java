@@ -1,5 +1,9 @@
 package com.company;
 
+import com.sun.org.apache.xerces.internal.impl.io.ASCIIReader;
+import com.sun.xml.internal.ws.util.ASCIIUtility;
+import sun.nio.cs.SingleByte;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -27,6 +31,7 @@ class AwaitCommand extends Thread {
         // 2 = Group
         // 3 = Update & Search
         try {
+            //Wait for requests and handle them accordingly
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             String s;
             RequestModel request;
@@ -96,6 +101,7 @@ class AwaitCommand extends Thread {
     }
 
     static void setShouldAwait(boolean shouldAwait) {
+        // set if server script should await requests or not
         AwaitCommand.shouldAwait = shouldAwait;
     }
 }

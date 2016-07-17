@@ -15,6 +15,7 @@ class ServerControl extends Thread {
 
     @Override
     public void run() {
+        //await console admin input and act accordingly
         Singleton.getInstance();
         String s;
         try {
@@ -33,7 +34,7 @@ class ServerControl extends Thread {
                         Utils.setAllowed(false);
                         break;
                     case "deleteallfromdb":
-                        deleteAllFromDb();
+                        clearDb();
                     case "disconnectall":
                         disconnectAll();
                         break;
@@ -69,7 +70,7 @@ class ServerControl extends Thread {
         Singleton.removeAll();
     }
 
-    private void deleteAllFromDb() {
+    private void clearDb() {
         while (true) {
             System.out.println("Are you sure you wish to delete every user from your database?");
             String input;

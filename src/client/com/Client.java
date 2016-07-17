@@ -1,6 +1,8 @@
 package client.com;
 
 import com.google.gson.Gson;
+import com.sun.org.apache.xerces.internal.impl.io.ASCIIReader;
+import com.sun.xml.internal.ws.util.ASCIIUtility;
 
 import java.io.BufferedReader;
 import java.io.IOException;

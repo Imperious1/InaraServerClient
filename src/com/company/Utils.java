@@ -132,6 +132,7 @@ final class Utils {
         return model;
     }
 
+    // form a model arraylist for group search
     static ArrayList<DataModel> formModelGroup(String groupQuery) throws SQLException {
         Statement statement = getDbConnection(1).createStatement();
         statement.execute("SELECT * FROM cmdrs WHERE wing=" + "'" + groupQuery + "'");
@@ -144,6 +145,7 @@ final class Utils {
         return groupPlayerList;
     }
 
+    //form a model for a players name
     static DataModel formModelStandard(String query) throws SQLException {
         Statement statement = getDbConnection(1).createStatement();
         statement.execute(String.format("SELECT * FROM inara_users.cmdrs WHERE cmdrname= '%s' LIMIT 1;", query.contains("cmdr ") ? query : "cmdr " + query));
@@ -155,6 +157,7 @@ final class Utils {
         return null;
     }
 
+    //form a list of 50 max players
     static ArrayList<DataModel> formModelListStandard(String query) throws SQLException {
         Statement statement = getDbConnection(1).createStatement();
         statement.execute(String.format("SELECT * FROM inara_users.cmdrs WHERE cmdrname LIKE '%%%s%%' LIMIT 50;", query));
